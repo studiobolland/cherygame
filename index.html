@@ -1,67 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Chery Car Game 1</title>
-    <style>
-      html, body { height: 100%; margin: 0; background:#000; }
-      #rive-canvas { position:absolute; inset:0; width:100%; height:100%; display:block; background:#000; }
-    </style>
-  </head>
-  <body>
-    <canvas id="rive-canvas"></canvas>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Responsive Rive Animation</title>
+<style>
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+}
+</style>
+</head>
 
-    <script type="module">
-      // ✅ Import the default module, then pull out the bits we need.
-      import riveModule from 'https://unpkg.com/@rive-app/canvas@2.31.2';
-      const { Rive, Fit, Alignment, Layout } = riveModule;
 
-      const canvas = document.getElementById('rive-canvas');
-      const RIV_SRC = 'chery.riv';          // ensure this file is next to index.html
-   //   const ARTBOARD = 'Dashboard';         // or remove if unsure
-    //  const STATE_MACHINE = 'State Machine 1';
 
-      // DPR-aware sizing so the canvas isn't effectively 0×0 on some devices
-      function resizeCanvas() {
-        const dpr = Math.max(1, window.devicePixelRatio || 1);
-        canvas.width  = Math.max(1, Math.floor(canvas.clientWidth  * dpr));
-        canvas.height = Math.max(1, Math.floor(canvas.clientHeight * dpr));
-      }
 
-      async function ensureRivReachable(url) {
-        const res = await fetch(url, { method: 'HEAD' });
-        if (!res.ok) throw new Error(`RIV not reachable: ${res.status} ${res.statusText}`);
-      }
+<body>
 
-      async function boot() {
-        await ensureRivReachable(RIV_SRC);
-        resizeCanvas();
 
-        const rive = new Rive({
-          src: RIV_SRC,
-          canvas,
-          autoplay: true,
-          // If you're not 100% sure of these names, comment them out to sanity-check first.
-          artboard: ARTBOARD,
-          stateMachines: STATE_MACHINE,
+  <canvas
+  style="
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: black;
+  "
+  id="rive-canvas"
+></canvas>
 
-          // Use Layout API (replaces fit/alignment props on some builds)
-          layout: new Layout({ fit: Fit.layout, alignment: Alignment.center }),
 
-          onLoad: () => {
-            resizeCanvas();
-            rive.resizeDrawingSurfaceToCanvas();
-          },
-          onError: (e) => console.error('[Rive] Error:', e)
-        });
 
-        // Handle window resizes & DPI changes
-        const scheduleResize = () => {
-          if (document.hidden) return;
-          resizeCanvas();
-          rive.resizeDrawingSurfaceToCanvas();
-        };
-        window.addEventListener('resize', scheduleResize);
-        // Some browsers don’t fire this, but it’s cheap if they do
-        matchMedia(`(resolution: ${window.devicePixelRatio}dppx)
 
+<script src="https://unpkg.com/@rive-app/webgl2"></script>
+<script>
+// The layout of the graphic will adhere to
+    const layout = new rive.Layout({
+      fit: rive.Fit.Layout,
+      layoutScaleFactor: 1, // when using `Fit.Layout`. This allows you to resize the layout as needed.
+    });
+
+
+    // ---------------------------------
+    // HTML Canvas element to render to
+    const riveCanvas = document.getElementById("rive-canvas");
+
+
+    function computeSize() {
+      riveInstance.resizeDrawingSurfaceToCanvas();
+    }
+
+
+    // Subscribe to window size changes and update call `resizeDrawingSurfaceToCanvas`
+    window.onresize = computeSize;
+
+
+    // Subscribe to devicePixelRatio changes and call `resizeDrawingSurfaceToCanvas`
+    window
+      .matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
+      .addEventListener("change", computeSize);
+
+
+
+
+    const riveInstance = new rive.Rive({
+      src: "chery.riv",
+      // Be sure to specify the correct state machine (or animation) name
+      stateMachines: "State Machine 1", // Name of the State Machine to play
+      canvas: riveCanvas,
+      artboard: "Dashboard",
+      layout: layout, // This is optional. Provides additional layout control.
+      autoplay: true,
+      autoBind: true,
+      onLoad: () => {
+        // Prevent a blurry canvas by using the device pixel ratio
+        riveInstance.resizeDrawingSurfaceToCanvas();
+      },
+    });
+
+
+</script>
+</body>
+</html>
