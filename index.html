@@ -1,85 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chery Game 🚘</title>
-<style>
-body {
-  font-family: sans-serif;
-  margin: 0;
-  padding: 0;
-}
-</style>
-</head>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity Web Player | CarBrandRacingGame</title>
+  </head>
+  <body style="text-align: center; padding: 0; border: 0; margin: 0;">
+    <canvas id="unity-canvas" width=720 height=1280 tabindex="-1" style="width: 720px; height: 1280px; background: #37677F"></canvas>
+    <script src="Build/a7cd0e0663e2143cef9c0938cc3734da.loader.js"></script>
+    <script>
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
 
+        var canvas = document.querySelector("#unity-canvas");
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        canvas.style.position = "fixed";
 
+        document.body.style.textAlign = "left";
+      }
 
-
-<body>
-
-
-  <canvas
-  style="
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    background-color: black;
-  "
-  id="rive-canvas"
-></canvas>
-
-
-
-
-<script src="https://unpkg.com/@rive-app/webgl2"></script>
-<script>
-// The layout of the graphic will adhere to
-    const layout = new rive.Layout({
-      fit: rive.Fit.Layout,
-      layoutScaleFactor: 1, // when using `Fit.Layout`. This allows you to resize the layout as needed.
-    });
-
-
-    // ---------------------------------
-    // HTML Canvas element to render to
-    const riveCanvas = document.getElementById("rive-canvas");
-
-
-    function computeSize() {
-      riveInstance.resizeDrawingSurfaceToCanvas();
-    }
-
-
-    // Subscribe to window size changes and update call `resizeDrawingSurfaceToCanvas`
-    window.onresize = computeSize;
-
-
-    // Subscribe to devicePixelRatio changes and call `resizeDrawingSurfaceToCanvas`
-    window
-      .matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
-      .addEventListener("change", computeSize);
-
-
-
-
-    const riveInstance = new rive.Rive({
-      src: "chery.riv",
-      // Be sure to specify the correct state machine (or animation) name
-      stateMachines: "State Machine 1", // Name of the State Machine to play
-      canvas: riveCanvas,
-      artboard: "Dashboard",
-      layout: layout, // This is optional. Provides additional layout control.
-      autoplay: true,
-      autoBind: true,
-      onLoad: () => {
-        // Prevent a blurry canvas by using the device pixel ratio
-        riveInstance.resizeDrawingSurfaceToCanvas();
-      },
-    });
-
-
-</script>
-</body>
+      createUnityInstance(document.querySelector("#unity-canvas"), {
+        arguments: [],
+        dataUrl: "Build/6204eb4aa1ff7870a4789e9941ec46a2.data",
+        frameworkUrl: "Build/1fa1601f39209e1eea0c8008d02e649d.framework.js",
+        codeUrl: "Build/4ad1d24a1415e12c0249a3767070fde4.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Studio Bo",
+        productName: "CarBrandRacingGame",
+        productVersion: "0.35",
+        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+      });
+    </script>
+  </body>
 </html>
-
