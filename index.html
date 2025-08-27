@@ -2,51 +2,106 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Chery Car Game</title>
+    <title>Chery Car Game 1</title>
+    <style>
+      /* Ensure the canvas can actually be 100% tall */
+      html, body {
+        height: 100%;
+        margin: 0;
+        background: #000;
+      }
+      #rive-canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        display: block;
+      }
+    </style>
   </head>
 
   <body>
-    <canvas
-      id="rive-canvas"
-      style="
-        position: absolute;
-        height: 100%;
-        width: 100%;
-        background-color: black;
-      "
-    ></canvas>
+    <canvas id="rive-canvas"></canvas>
 
     <script type="module">
-      import { Rive, Fit, Alignment } from 'https://unpkg.com/@rive-app/canvas@2.31.2?module';
+      // 1) Import the Rive ESM. Using default import is often more robust across builds/CDNs.
+      import Rive, { Fit, Alignment } from 'https://unpkg.com/@rive-app/canvas@2.31.2?module';
 
       const canvas = document.getElementById('rive-canvas');
 
-      const riveInstance = new Rive({
-        src: 'chery.riv',             // Make sure this is in the same folder
-        artboard: 'Dashboard',              // Update as needed
-        stateMachines: 'State Machine 1',   // Update as needed
-        canvas: canvas,
-        autoplay: true,
-        autoBind: true,
+      // 2) Toggle this to test with a known-good file if your local asset fails.
+      const USE_DEMO_FILE = false;
+      const RIV_SRC = USE_DEMO_FILE
+        ? 'https://cdn.rive.app/animations/vehicles.riv'
+        : 'chery.riv'; // your local file (same folder as index.html)
 
-        fit: Fit.layout,                    // Key: matches layout to canvas
-        alignment: Alignment.center,
-
-        onLoad: () => {
-          resizeCanvas();
-        },
-      });
-
+      // 3) Helper: make sure the canvas has a proper DPR size before Rive binds
       function resizeCanvas() {
-        canvas.width = canvas.clientWidth * window.devicePixelRatio;
-        canvas.height = canvas.clientHeight * window.devicePixelRatio;
-        riveInstance.resizeDrawingSurfaceToCanvas();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.max(1, Math.floor(canvas.clientWidth * dpr));
+        canvas.height = Math.max(1, Math.floor(canvas.clientHeight * dpr));
       }
 
-      window.addEventListener('resize', resizeCanvas);
-      window.matchMedia(`(resolution:${window.devicePixelRatio}dppx)`)
-            .addEventListener('change', resizeCanvas);
+      // 4) Fetch first to catch 404/CORS/path issues early (gives clear console error)
+      async function ensureRivReachable(url) {
+        try {
+          const res = await fetch(url, { method: 'HEAD' });
+          if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+          console.log('[Rive] .riv reachable:', url);
+        } catch (err) {
+          console.error('[Rive] Could not reach .riv file:', url, err);
+          throw err;
+        }
+      }
+
+      // 5) Boot Rive
+      async function boot() {
+        console.log('[Rive] Booting… DPR=', window.devicePixelRatio);
+        await ensureRivReachable(RIV_SRC);
+        resizeCanvas();
+
+        const riveInstance = new Rive({
+          src: RIV_SRC,
+          // If unsure about names, comment these two lines out to test a plain artboard render:
+          artboard: 'Dashboard',
+          stateMachines: 'State Machine 1',
+
+          canvas,
+          autoplay: true,
+          autoBind: true,
+
+          // You said your file is authored with Layout mode.
+          // Fit.layout tells runtime to use the artboard’s Layout responsiveness.
+          fit: Fit.layout,
+          alignment: Alignment.center,
+
+          onLoad: () => {
+            console.log('[Rive] onLoad fired.');
+            // DPR-aware sizing + tell Rive to match canvas & layout.
+            resizeCanvas();
+            riveInstance.resizeDrawingSurfaceToCanvas();
+          },
+          // Some builds expose onError; if yours doesn’t, fetch() above will still catch path issues.
+          onError: (e) => console.error('[Rive] onError:', e)
+        });
+
+        // Handle window resize + DPR changes
+        function scheduleResize() {
+          if (document.hidden) return;
+          resizeCanvas();
+          riveInstance.resizeDrawingSurfaceToCanvas();
+        }
+        window.addEventListener('resize', scheduleResize);
+        window.matchMedia(`(resolution:${window.devicePixelRatio}dppx)`)
+              .addEventListener('change', scheduleResize);
+      }
+
+      boot().catch(err => {
+        console.error('[Rive] Failed to initialize:', err);
+        // Optional: fallback to demo file automatically
+        // location.href = location.href + (location.href.includes('#demo') ? '' : '#demo');
+      });
     </script>
   </body>
 </html>
-
